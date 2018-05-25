@@ -122,12 +122,18 @@ describe('Restaurants API resource', function() {
         .get('/restaurants')
         .then(function(_res) {
           // so subsequent .then blocks can access response object
+          // declare a res value bc we need a place to store some data to use across .then calls
           res = _res;
+          // Prove we got expected status code
           expect(res).to.have.status(200);
           // otherwise our db seeding didn't work
           expect(res.body.restaurants).to.have.lengthOf.at.least(1);
+          // Prove that we got back the same numbers of restaurants as there in the database
+          // returns a Promise that will tell us the number of restaurants in the database
+          // QUESTION: what does this promise look like?
           return Restaurant.count();
         })
+        // This block gets the value returned by the Restaurant.count.
         .then(function(count) {
           expect(res.body.restaurants).to.have.lengthOf(count);
         });
@@ -139,6 +145,7 @@ describe('Restaurants API resource', function() {
 
       let resRestaurant;
       return chai.request(app)
+      // retrieve all restaurants
         .get('/restaurants')
         .then(function(res) {
           expect(res).to.have.status(200);
@@ -151,11 +158,14 @@ describe('Restaurants API resource', function() {
             expect(restaurant).to.include.keys(
               'id', 'name', 'cuisine', 'borough', 'grade', 'address');
           });
+          // get the id of one restaurant
           resRestaurant = res.body.restaurants[0];
+          // return a Promise
           return Restaurant.findById(resRestaurant.id);
         })
+        // QUESTION: passes in the Promise from Restaurant.findById(resRestaurant.id)? 
         .then(function(restaurant) {
-
+          // show that the values in the restaurant object correspond with those in the database
           expect(resRestaurant.id).to.equal(restaurant.id);
           expect(resRestaurant.name).to.equal(restaurant.name);
           expect(resRestaurant.cuisine).to.equal(restaurant.cuisine);
@@ -191,7 +201,7 @@ describe('Restaurants API resource', function() {
           expect(res.body.id).to.not.be.null;
           expect(res.body.cuisine).to.equal(newRestaurant.cuisine);
           expect(res.body.borough).to.equal(newRestaurant.borough);
-
+          // QUESTION: is this correct? generate Restaurant data, take its array of grades, assign MostRecentGrade that value, sort the grades in alphabetical order, take the first grade, create a new property grade
           mostRecentGrade = newRestaurant.grades.sort(
             (a, b) => b.date - a.date)[0].grade;
 
@@ -226,6 +236,7 @@ describe('Restaurants API resource', function() {
       return Restaurant
         .findOne()
         .then(function(restaurant) {
+          // set the id property (PUT endpoint checks that the request body contains the same value for id as appears in /restaurants/:id)
           updateData.id = restaurant.id;
 
           // make request then inspect it to make sure it reflects
